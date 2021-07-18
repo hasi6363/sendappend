@@ -1,0 +1,16 @@
+#!/bin/bash
+
+function install () {
+  EXT=${1}
+  for file in `\find . -maxdepth 1 -name "*${EXT}"`; do
+    PROG=$(basename ${file} ${EXT})
+    ORIG=$(pwd)/${PROG}${EXT}
+    DIST=/usr/local/bin/${PROG}
+    echo "create symbolic link from ${ORIG} to ${DIST}"
+    ln -s ${ORIG} ${DIST}
+  done
+}
+
+install .sh
+install .py
+

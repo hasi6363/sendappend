@@ -1,0 +1,14 @@
+#!/bin/bash
+
+function uninstall () {
+  EXT=${1}
+  for file in `\find . -maxdepth 1 -name "*${EXT}"`; do
+    PROG=$(basename ${file} ${EXT})
+    DIST=/usr/local/bin/${PROG}
+    echo "remove ${DIST}"
+    rm ${DIST}
+  done
+}
+
+uninstall .sh
+uninstall .py
