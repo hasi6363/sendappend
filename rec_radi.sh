@@ -25,8 +25,8 @@ do
         d)  TIME="-d ${OPTARG}"
             echo "TIME:${OPTARG}"
             ;;
-        o)  OUTDIR=${OPTARG}
-            echo "OUTDIR:${OPTARG}"
+        o)  OUTDIR=${OPTARG%/}
+            echo "OUTDIR:${OPTARG%/}"
             ;;
         n)  SUFFIX=${OPTARG}
             echo "SUFFIX:${OPTARG}"
@@ -66,10 +66,12 @@ echo ${RADISH}
 eval ${RADISH}
 
 if [ -n "${EMAIL}" ]; then
-  SENDFILE=$(find ${OUTDIR} -maxdepth 1 -name ${FILENAME}.*)
+  SENDFILE=$(find ${OUTDIR}/ -maxdepth 1 -name ${FILENAME}.*)
   echo "SENDFILE:${SENDFILE}"
-  SENDAPPEND="sendappend ${SENDFILE} ${EMAIL}"
-  echo ${SENDAPPEND}
-  eval ${SENDAPPEND}
+  if [ -n "${SENDFILE}" ]; then
+    SENDAPPEND="sendappend ${SENDFILE} ${EMAIL}"
+    echo ${SENDAPPEND}
+    eval ${SENDAPPEND}
+  fi
 fi
 
