@@ -11,6 +11,8 @@ import os.path
 def convert(f_input, f_output):
     print('#### CONVERT START ####')
     loglevel = f'-loglevel {args.loglevel}'
+    analyzeduration = f'-analyzeduration 60M'
+    probesize = f'-probesize 60M'
     if args.codec == 'libx264':
         hwaccel = ''
         hwoptions = ''
@@ -21,7 +23,7 @@ def convert(f_input, f_output):
         #aoptions = '-bsf:a aac_adtstoasc -fflags +discardcorrupt'
         aoptions = ''
     elif args.codec == 'h264_vaapi':
-        hwaccel = ' -vaapi_device /dev/dri/renderD128 -hwaccel vaapi -hwaccel_output_format vaapi'
+        hwaccel = '-vaapi_device /dev/dri/renderD128 -hwaccel vaapi -hwaccel_output_format vaapi'
         hwoptions = '-vf "format=nv12|vaapi,hwupload,deinterlace_vaapi,scale_vaapi=w=1280:h=720"'
         options = '-preset veryfast -tune animation,zerolatency -movflags +faststart -vsync 1'
         vcodec = '-c:v h264_vaapi'
@@ -43,12 +45,15 @@ def convert(f_input, f_output):
         #aoptions = '-bsf:a aac_adtstoasc -fflags +discardcorrupt'
         aoptions = ''
     others = ''#'-s:c copy'
-    command = f'ffmpeg {hwaccel} {hwoptions} -i "{f_input}" {options} {vcodec} {voptions} {acodec} {aoptions} {loglevel} {others} "{f_output}"'
+    command = f'ffmpeg {analyzeduration} {probesize} {hwaccel} {hwoptions} -i "{f_input}" {options} {vcodec} {voptions} {acodec} {aoptions} {loglevel} {others} "{f_output}"'
     
     print(command)
+    ret = 0
     if args.dry_run == False:
-        subprocess.run(command,shell=True,check=True)
+        ret = -1
+        ret = subprocess.run(command,shell=True,check=True)
     print('#### CONVERT FINISH ####')
+    return ret
 
 def main():
     count = 0
@@ -86,7 +91,8 @@ def main():
             print('Convet from: ' + f_input)
             print('         to: ' + f_output)
             if args.dry_run == False:
-                convert(f_input, f_output)
+                convert_result = convert(f_input, f_output)
+                print('convert result: ' + convert_result)
         else:
             print('#### NO CONVERT ####')
         
@@ -99,7 +105,10 @@ def main():
                 print('Move from: ' + f_input)
                 print('       to: ' + f_input_done)
                 if args.dry_run == False:
-                    shutil.move(f_input, f_input_done)
+                    if convert_result == 0:
+                        shutil.move(f_input, f_input_done)
+                    else:
+                        print('no move because convert is failed:' + convert_result)
             elif args.delete_m2ts == True:
                 print('Delete: '+ f_input)
                 if args.dry_run == False:
